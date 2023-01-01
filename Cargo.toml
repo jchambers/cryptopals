@@ -3,4 +3,9 @@ name = "cryptopals"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "challenge01"
+
 [dependencies]
+hex = "0.4.3"
+radix64 = "0.6.2"
