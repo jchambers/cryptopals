@@ -15,6 +15,10 @@ name = "challenge03"
 [[bin]]
 name = "challenge04"
 
+[[bin]]
+name = "challenge05"
+
 [dependencies]
 hex = "0.4.3"
+indoc = "1.0"
 radix64 = "0.6.2"
