@@ -21,7 +21,12 @@ name = "challenge05"
 [[bin]]
 name = "challenge06"
 
+[[bin]]
+name = "challenge07"
+
 [dependencies]
+aes = "0.8.2"
 hex = "0.4.3"
 indoc = "1.0"
 radix64 = "0.6.2"
+rust-crypto = "0.2.36"
