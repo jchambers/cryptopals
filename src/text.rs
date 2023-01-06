@@ -1,43 +1,29 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
+use crate::fraction::Fraction;
 
-const MOST_FREQUENT_CHARACTERS: &str = " etaoinshrdlu";
+const MOST_FREQUENT_CHARACTERS: &str = "etaoin shrdlu";
 
-pub fn deviation_from_expected_frequency(string: &str) -> usize {
-    let character_counts: HashMap<char, u32> = string.to_lowercase().chars()
-            .fold(HashMap::new(), |mut character_counts, c| {
-                *character_counts.entry(c).or_insert(0) += 1;
-                character_counts
-            });
-
-    let mut character_counts: Vec<(char, u32)> = character_counts
-        .into_iter()
+pub fn englishiness(string: &str) -> Fraction {
+    let common_characters: HashSet<char> = MOST_FREQUENT_CHARACTERS
+        .chars()
         .collect();
 
-    character_counts.sort_by_key(|(_, count)| *count);
-    character_counts.reverse();
+    let common_character_count = string
+        .chars()
+        .filter(|c| common_characters.contains(c))
+        .count();
 
-    println!("Character counts: {:?}", character_counts);
-
-    let sorted: String = character_counts
-        .iter()
-        .take(MOST_FREQUENT_CHARACTERS.len())
-        .map(|(c, _)| c)
-        .collect();
-
-    println!("Sorted: {}", sorted);
-    println!("Deviation: {}", levenshtein::levenshtein(MOST_FREQUENT_CHARACTERS, &sorted));
-
-    levenshtein::levenshtein(MOST_FREQUENT_CHARACTERS, &sorted)
+    Fraction::new(common_character_count as u64, string.len() as u64)
 }
 
 #[cfg(test)]
 mod test {
-    use crate::text::deviation_from_expected_frequency;
+    use crate::text::englishiness;
 
     #[test]
-    fn test_deviation_from_expected_frequency() {
-        assert!(deviation_from_expected_frequency("This is a relatively normal string of English text") <
-            deviation_from_expected_frequency("jkdbfnjkvndkvlbmsidfnuvndfnvblskdnblkd")
+    fn test_englishiness() {
+        assert!(englishiness("This is a relatively normal string of English text") >
+            englishiness("jkdbfnjkvndkvlbmsidfnuvndfnvblskdnblkd")
         );
     }
 }
