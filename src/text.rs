@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use crate::fraction::Fraction;
 
 const MOST_FREQUENT_CHARACTERS: &str = "etaoin shrdlu";
+const _WORDS_FILE: &str = "/usr/share/dict/words";
 
 pub fn englishiness(string: &str) -> Fraction {
     let common_characters: HashSet<char> = MOST_FREQUENT_CHARACTERS
