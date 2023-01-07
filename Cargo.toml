@@ -30,9 +30,13 @@ name = "challenge08"
 [[bin]]
 name = "challenge09"
 
+[[bin]]
+name = "challenge10"
+
 [dependencies]
 aes = "0.8.2"
 hex = "0.4.3"
 indoc = "1.0"
 radix64 = "0.6.2"
+rand = "0.8.5"
 rust-crypto = "0.2.36"
