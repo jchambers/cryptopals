@@ -1,8 +1,5 @@
 use std::{env, fs};
 use std::error::Error;
-use aes::Aes128;
-use aes::cipher::generic_array::GenericArray;
-use aes::cipher::{BlockDecrypt, KeyInit};
 
 const KEY: &[u8] = "YELLOW SUBMARINE".as_bytes();
 
@@ -17,19 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             radix64::STD.decode(&encoded)?
         };
 
-        let cipher = Aes128::new_from_slice(KEY).unwrap();
-
-        let cleartext: String = ciphertext.chunks(16)
-            .map(|block| {
-                let block: [u8; 16] = block.try_into().unwrap();
-                let mut block = GenericArray::from(block);
-                cipher.decrypt_block(&mut block);
-
-                String::from(std::str::from_utf8(block.as_slice()).unwrap())
-            })
-            .collect();
-
-        println!("{}", cleartext);
+        println!("{}", String::from_utf8(cryptopals::aes::aes_ecb_decrypt(&ciphertext, KEY))?);
 
         Ok(())
     } else {

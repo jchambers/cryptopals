@@ -1,8 +1,5 @@
 extern crate core;
 
-use aes::Aes128;
-use aes::cipher::generic_array::GenericArray;
-use aes::cipher::{BlockEncrypt, KeyInit};
 use indoc::indoc;
 use rand::RngCore;
 
@@ -60,7 +57,7 @@ fn main() {
 
         let mut candidate_block = Vec::from(&target_text[i - block_length..i]);
 
-        assert!(candidate_block.len() == block_length);
+        assert_eq!(block_length, candidate_block.len());
 
         for candidate_byte in u8::MIN..=u8::MAX {
             candidate_block[block_length - 1] = candidate_byte;
@@ -93,26 +90,5 @@ fn concatenate_and_encrypt(prefix: &[u8], key: &[u8]) -> Vec<u8> {
         cleartext
     };
 
-    let cipher = Aes128::new_from_slice(key).unwrap();
-    let mut ciphertext = Vec::with_capacity(cleartext.len());
-
-    cleartext.chunks(16)
-        .map(pkcs7_pad::<16>)
-        .for_each(|block| {
-            let mut block = GenericArray::from(block);
-            cipher.encrypt_block(&mut block);
-
-            ciphertext.extend_from_slice(block.as_slice());
-        });
-
-    ciphertext
-}
-
-fn pkcs7_pad<const N: usize>(bytes: &[u8]) -> [u8; N] {
-    assert!(bytes.len() <= N);
-
-    let mut block = [(N - bytes.len()) as u8; N];
-    block[..bytes.len()].clone_from_slice(bytes);
-
-    block
+    cryptopals::aes::aes_ecb_encrypt(&cleartext, key)
 }

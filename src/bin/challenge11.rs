@@ -1,7 +1,4 @@
 use std::collections::HashSet;
-use aes::Aes128;
-use aes::cipher::generic_array::GenericArray;
-use aes::cipher::{BlockEncrypt, KeyInit};
 use rand::{Rng, RngCore};
 
 fn main() {
@@ -70,7 +67,7 @@ impl EncryptionOracle {
         };
 
         let ciphertext = match block_mode {
-            BlockMode::ECB => Self::encrypt_ecb(&padded_cleartext, &key),
+            BlockMode::ECB => cryptopals::aes::aes_ecb_encrypt(&padded_cleartext, &key),
             BlockMode::CBC => {
                 let iv = {
                     let mut iv = [0; 16];
@@ -79,63 +76,10 @@ impl EncryptionOracle {
                     iv
                 };
 
-                Self::encrypt_cbc(&padded_cleartext, &key, &iv)
+                cryptopals::aes::aes_cbc_encrypt(&padded_cleartext, &key, &iv)
             }
         };
 
         (ciphertext, block_mode)
-    }
-
-    fn encrypt_ecb(cleartext: &[u8], key: &[u8]) -> Vec<u8> {
-        let cipher = Aes128::new_from_slice(key).unwrap();
-        let mut ciphertext = Vec::with_capacity(cleartext.len());
-
-        cleartext.chunks(16)
-            .map(Self::pkcs7_pad::<16>)
-            .for_each(|block| {
-                let mut block = GenericArray::from(block);
-                cipher.encrypt_block(&mut block);
-
-                ciphertext.extend_from_slice(block.as_slice());
-            });
-
-        ciphertext
-    }
-
-    fn encrypt_cbc(cleartext: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
-        let cipher = Aes128::new_from_slice(key).unwrap();
-        let mut ciphertext: Vec<u8> = Vec::with_capacity(cleartext.len());
-
-        for block in cleartext.chunks(16) {
-            let previous_block = if ciphertext.len() >= 16 {
-                &ciphertext[ciphertext.len() - 16..]
-            } else {
-                iv
-            };
-
-            let block: [u8; 16] = Self::pkcs7_pad(block);
-            let block: [u8; 16] = block.iter()
-                .zip(previous_block.iter())
-                .map(|(a, b)| a ^ b)
-                .collect::<Vec<u8>>()
-                .try_into()
-                .unwrap();
-
-            let mut block = GenericArray::from(block);
-
-            cipher.encrypt_block(&mut block);
-            ciphertext.extend_from_slice(block.as_slice());
-        }
-
-        ciphertext
-    }
-
-    fn pkcs7_pad<const N: usize>(bytes: &[u8]) -> [u8; N] {
-        assert!(bytes.len() <= N);
-
-        let mut block = [(N - bytes.len()) as u8; N];
-        block[..bytes.len()].clone_from_slice(bytes);
-
-        block
     }
 }

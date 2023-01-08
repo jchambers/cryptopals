@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             (key, cleartext)
         })
-        .max_by_key(|(_, cleartext)| englishiness(&cleartext))
+        .max_by_key(|(_, cleartext)| englishiness(cleartext))
         .unwrap();
 
     println!("Key = {:#04x}; cleartext = {}", key, cleartext);
