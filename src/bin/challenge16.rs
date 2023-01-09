@@ -35,8 +35,19 @@ fn main() {
     // here is that the entire first block will get scrambled; I THINK that's okay and within the
     // spirit of the problem (which seems to assume a crappy parser that won't complain about the
     // janky first block?).
-    let mut cookie_ciphertext = encrypt_cookie("admin<true", &key, &iv);
-    cookie_ciphertext[16 + "admin".len()] ^= 1;
+    //
+    // We can at least isolate the jankiness by closing off any previous block with a ';'.
+    // Single-bit-flip alternatives for ';' are:
+    //
+    // - ':' (0b00111010)
+    // - '9' (0b00111001)
+    // - '?' (0b00111111)
+    // - '3' (0b00110011)
+    // - '+' (0b00101011)
+    // - '{' (0b01111011)
+    let mut cookie_ciphertext = encrypt_cookie(":admin<true", &key, &iv);
+    cookie_ciphertext[16] ^= 1;
+    cookie_ciphertext[16 + ";admin".len()] ^= 1;
 
     assert!(encrypted_cookie_contains_admin_tuple(&cookie_ciphertext, &key, &iv));
 }
@@ -57,8 +68,6 @@ fn encrypted_cookie_contains_admin_tuple(ciphertext: &[u8], key: &[u8], iv: &[u8
         String::from_utf8_unchecked(cryptopals::aes::aes_cbc_decrypt(ciphertext, key, iv))
     };
 
-    println!("{}", cleartext);
-
     cookie_contains_admin_tuple(&cleartext)
 }
 
@@ -69,9 +78,12 @@ fn cookie_contains_admin_tuple(cookie: &str) -> bool {
 }
 
 fn _dump_bit_flipped_alternatives(c: char) {
-    for i in 0..8 {
+    for i in 0..7 {
         let alternative = c as u8 ^ (1 << i);
-        println!("- '{}' ({:#010b})", alternative as char, alternative);
+
+        if !(alternative as char).is_control() {
+            println!("- '{}' ({:#010b})", alternative as char, alternative);
+        }
     }
 }
 
