@@ -8,17 +8,27 @@ pub fn pkcs7_pad<const N: usize>(bytes: &[u8]) -> [u8; N] {
 }
 
 pub fn pkcs7_strip(bytes: &[u8]) -> Vec<u8> {
-    if !bytes.is_empty() {
+    if let Ok(stripped) = try_pkcs7_strip(bytes) {
+        stripped
+    } else {
+        Vec::from(bytes)
+    }
+}
+
+pub fn try_pkcs7_strip(bytes: &[u8]) -> Result<Vec<u8>, ()> {
+    if bytes.is_empty() {
+        Ok(vec![])
+    } else {
         let last_byte = bytes[bytes.len() - 1];
 
         if (last_byte as usize) < bytes.len()
             && bytes[bytes.len() - last_byte as usize..].iter().all(|&b| b == last_byte) {
 
-            return Vec::from(&bytes[..bytes.len() - last_byte as usize]);
+            Ok(Vec::from(&bytes[..bytes.len() - last_byte as usize]))
+        } else {
+            Err(())
         }
     }
-
-    Vec::from(bytes)
 }
 
 #[cfg(test)]
