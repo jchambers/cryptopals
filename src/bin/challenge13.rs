@@ -72,7 +72,7 @@ fn encrypted_profile_for(email: &str, key: &[u8]) -> Vec<u8> {
 }
 
 fn parse_encrypted_profile(ciphertext: &[u8], key: &[u8]) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let cleartext = String::from_utf8(cryptopals::aes::aes_ecb_decrypt(ciphertext, key))?;
+    let cleartext = String::from_utf8(cryptopals::pkcs7::pkcs7_strip(&cryptopals::aes::aes_ecb_decrypt(ciphertext, key)))?;
     parse_kv_string(&cleartext)
 }
 

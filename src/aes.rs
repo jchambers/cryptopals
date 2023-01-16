@@ -34,7 +34,7 @@ pub fn aes_ecb_decrypt(ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
             cleartext.extend_from_slice(&block);
         });
 
-    crate::pkcs7::pkcs7_strip(&cleartext)
+    cleartext
 }
 
 pub fn aes_cbc_encrypt(cleartext: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
@@ -89,7 +89,7 @@ pub fn aes_cbc_decrypt(ciphertext: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
             .map(|(a, b)| a ^ b));
     }
 
-    crate::pkcs7::pkcs7_strip(&cleartext)
+    cleartext
 }
 
 #[cfg(test)]
