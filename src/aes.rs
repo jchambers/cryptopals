@@ -92,6 +92,28 @@ pub fn aes_cbc_decrypt(ciphertext: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
     cleartext
 }
 
+pub fn aes_ctr_transform(text: &[u8], key: &[u8], nonce: u64) -> Vec<u8> {
+    let cipher = Aes128::new_from_slice(key).unwrap();
+
+    text
+        .chunks(16)
+        .enumerate()
+        .flat_map(|(counter, block)| {
+            let mut keystream = [0; 16];
+            keystream[0..8].clone_from_slice(&nonce.to_le_bytes());
+            keystream[8..].clone_from_slice(&(counter as u64).to_le_bytes());
+
+            let mut keystream = GenericArray::from(keystream);
+            cipher.encrypt_block(&mut keystream);
+
+            keystream.iter()
+                .zip(block.iter())
+                .map(|(a, b)| a ^ b)
+                .collect::<Vec<u8>>()
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod test {
     use rand::RngCore;
