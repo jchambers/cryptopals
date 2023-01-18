@@ -82,26 +82,12 @@ fn decrypt_block(block: &[u8], iv: &[u8], padding_oracle: &PaddingOracle) -> Vec
                 .collect();
 
             if padding_oracle.has_valid_padding(block, &iv) {
-                println!("Candidate at position {}: {:x?}", i, candidate);
-            }
-        }
-
-        for candidate in u8::MIN..u8::MAX {
-            iv_error[i] = candidate;
-
-            let iv: Vec<u8> = iv.iter()
-                .zip(iv_error.iter())
-                .map(|(a, b)| a ^ b)
-                .collect();
-
-            if padding_oracle.has_valid_padding(block, &iv) {
                 // TERRIBLE TERRIBLE HACK: some blocks may already be padded correctly! The RIGHT
                 // thing to do would be to do a depth-first search through the mutation space. The
                 // terrible thing I'm doing here instead is just observing that bytes 0-16 are
                 // unlikely to appear naturally in text (\r and \n notwithstanding) and using that
                 // as a heuristic to avoid going down the wrong path.
-                if i == 15 && candidate == 0 {
-                    println!("Skipping candidate");
+                if i == BLOCK_SIZE - 1 && candidate == 0 {
                     continue;
                 }
 
@@ -114,16 +100,8 @@ fn decrypt_block(block: &[u8], iv: &[u8], padding_oracle: &PaddingOracle) -> Vec
             }
         }
 
-        if !found_cleartext_byte {
-            println!("IV:                  {:02x?}", iv);
-            println!("Actual cleartext len: {}", padding_oracle.cleartext.len());
-            println!("Actual cleartext:    {:02x?}", padding_oracle.cleartext);
-            println!("Decrypted cleartext: {:02x?}", cleartext);
-            assert!(found_cleartext_byte);
-        }
+        assert!(found_cleartext_byte);
     }
-
-    println!("Finished block: {:02x?}", cleartext);
 
     cleartext
 }
