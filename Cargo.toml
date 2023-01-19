@@ -57,8 +57,12 @@ name = "challenge17"
 [[bin]]
 name = "challenge18"
 
+[[bin]]
+name = "challenge19"
+
 [dependencies]
 aes = "0.8.2"
+crossterm = "0.25.0"
 hex = "0.4.3"
 indoc = "1.0"
 lazy_static = "1.4.0"
