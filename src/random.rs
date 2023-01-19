@@ -34,7 +34,7 @@ impl MersenneTwister {
         }
     }
 
-    fn next(&mut self) -> u32 {
+    pub fn next_u32(&mut self) -> u32 {
         if self.index == N {
             self.twist();
         }
@@ -89,7 +89,7 @@ mod test {
         let mut mt = MersenneTwister::new(1131464071);
 
         for i in 0..10 {
-            assert_eq!(EXPECTED_VALUES[i], mt.next());
+            assert_eq!(EXPECTED_VALUES[i], mt.next_u32());
         }
     }
 }

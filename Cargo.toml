@@ -63,6 +63,9 @@ name = "challenge19"
 [[bin]]
 name = "challenge20"
 
+[[bin]]
+name = "challenge21"
+
 [dependencies]
 aes = "0.8.2"
 crossterm = "0.25.0"
