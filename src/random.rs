@@ -25,7 +25,7 @@ impl MersenneTwister {
         state[0] = seed;
 
         for i in 1..state.len() {
-            state[i] = F.wrapping_mul(state[i - 1] ^ (state[i - 1] >> (u32::BITS - 2))) + i as u32;
+            state[i] = F.wrapping_mul(state[i - 1] ^ (state[i - 1] >> (u32::BITS - 2))).wrapping_add(i as u32);
         }
 
         Self {
