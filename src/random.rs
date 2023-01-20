@@ -66,6 +66,15 @@ impl MersenneTwister {
     }
 }
 
+impl From<[u32; N]> for MersenneTwister {
+    fn from(state: [u32; N]) -> Self {
+        Self {
+            state,
+            index: N,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::random::MersenneTwister;
