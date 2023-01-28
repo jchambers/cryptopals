@@ -7,6 +7,8 @@ pub struct Sha1 {
 
 impl Sha1 {
     pub fn with_initial_state(hash: &[u8], message_length_bytes: usize) -> Self {
+        assert_eq!(20, hash.len());
+
         let hash_words: Vec<u32> = hash.chunks_exact(4)
             .map(|word| u32::from_be_bytes(word.try_into().unwrap()))
             .collect();
