@@ -6,15 +6,17 @@ pub struct Sha1 {
 }
 
 impl Sha1 {
-    const INITIAL_HASH: [u32; 5] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
+    pub fn with_initial_state(hash: &[u8], message_length_bytes: usize) -> Self {
+        let hash_words: Vec<u32> = hash.chunks_exact(4)
+            .map(|word| u32::from_be_bytes(word.try_into().unwrap()))
+            .collect();
 
-    fn new() -> Self {
         Self {
-            hash: Sha1::INITIAL_HASH,
+            hash: hash_words.as_slice().try_into().unwrap(),
 
             buffer: [0; 64],
             buffer_write_index: 0,
-            message_length_bytes: 0,
+            message_length_bytes,
         }
     }
 
@@ -52,7 +54,6 @@ impl Sha1 {
             });
 
         for i in 16..extended.len() {
-            // w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]) leftrotate 1
             extended[i] =
                 (extended[i - 3] ^ extended[i - 8] ^ extended[i - 14] ^ extended[i - 16]).rotate_left(1);
         }
@@ -102,22 +103,8 @@ impl Sha1 {
         self.hash[4] = self.hash[4].wrapping_add(e);
     }
 
-    pub fn finish(&mut self) -> Vec<u8> {
-        self.update(&[0x80]);
-        self.message_length_bytes -= 1;
-
-        // This could be more efficient, but opting for clarity for the moment
-        while self.buffer_write_index != 56 {
-            self.update(&[0x00]);
-
-            // Hacky!
-            self.message_length_bytes -= 1;
-        }
-
-        let message_length_bits = self.message_length_bytes as u64 * 8;
-
-        self.buffer[56..].clone_from_slice(&message_length_bits.to_be_bytes());
-        self.process_buffer();
+    pub fn finish(mut self) -> Vec<u8> {
+        self.update(&Sha1::padding(self.message_length_bytes));
 
         let mut hash = Vec::with_capacity(20);
 
@@ -126,6 +113,30 @@ impl Sha1 {
         }
 
         hash
+    }
+
+    pub fn padding(message_length_bytes: usize) -> Vec<u8> {
+        let padding_length = (56 - (message_length_bytes + 1) as isize).rem_euclid(64) as usize;
+
+        let mut padding = vec![0; padding_length + 1];
+        padding[0] = 0x80;
+
+        let message_length_bits = message_length_bytes as u64 * 8;
+        padding.extend_from_slice(&message_length_bits.to_be_bytes());
+
+        padding
+    }
+}
+
+impl Default for Sha1 {
+    fn default() -> Self {
+        Self {
+            hash: [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0],
+
+            buffer: [0; 64],
+            buffer_write_index: 0,
+            message_length_bytes: 0,
+        }
     }
 }
 
@@ -137,7 +148,7 @@ mod test {
     fn test_hash() {
         // Test vectors from https://www.di-mgt.com.au/sha_testvectors.html
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
             sha1.update(&[]);
 
             assert_eq!(
@@ -147,7 +158,7 @@ mod test {
         }
 
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
             sha1.update(b"abc");
 
             assert_eq!(
@@ -157,7 +168,7 @@ mod test {
         }
 
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
             sha1.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq");
 
             assert_eq!(
@@ -167,7 +178,7 @@ mod test {
         }
 
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
             sha1.update(b"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu");
 
             assert_eq!(
@@ -177,7 +188,7 @@ mod test {
         }
 
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
 
             for _ in 0..1_000_000 / 64 {
                 sha1.update(&[b'a'; 64]);
@@ -190,7 +201,7 @@ mod test {
         }
 
         {
-            let mut sha1 = Sha1::new();
+            let mut sha1 = Sha1::default();
 
             for _ in 0..16_777_216 {
                 sha1.update(b"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno");
