@@ -1,4 +1,4 @@
-struct MD4 {
+pub struct MD4 {
     hash: [u32; 4],
     buffer: [u8; 64],
     buffer_write_index: usize,
@@ -39,7 +39,7 @@ impl MD4 {
         assert_eq!(16, hash.len());
 
         let hash_words: Vec<u32> = hash.chunks_exact(4)
-            .map(|word| u32::from_be_bytes(word.try_into().unwrap()))
+            .map(|word| u32::from_le_bytes(word.try_into().unwrap()))
             .collect();
 
         Self {
